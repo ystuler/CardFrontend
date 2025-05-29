@@ -1,13 +1,11 @@
 <script lang="ts">
   import { isAuthenticated, user } from '$lib/stores';
+  import Collections from '$lib/Collections.svelte';
 </script>
 
 <div class="container">
   {#if $isAuthenticated}
-    <div class="welcome">
-      <h1>Добро пожаловать, {$user?.username}!</h1>
-      <p>Вы успешно авторизованы. Здесь будет интерфейс для работы с карточками.</p>
-    </div>
+    <Collections />
   {:else}
     <div class="welcome">
       <h1>Добро пожаловать в Flashcard App</h1>
