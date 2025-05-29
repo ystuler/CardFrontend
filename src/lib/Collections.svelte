@@ -7,17 +7,17 @@
     type AllCollections,
     type CreateCollectionReq,
     type UpdateCollectionReq 
-  } from '$lib/api';
-  import { user } from '$lib/stores';
+  } from '$lib/api';  import { user } from '$lib/stores';
   import { onMount } from 'svelte';
   import Cards from './Cards.svelte';
+  import TrainingMode from './TrainingMode.svelte';
 
   let collections: AllCollections[] = [];
   let loading = false;
   let error = '';
-  
-  // View state
+    // View state
   let selectedCollection: AllCollections | null = null;
+  let trainingCollection: AllCollections | null = null;
   
   // Form state
   let showCreateForm = false;
@@ -131,13 +131,17 @@
       day: 'numeric'
     });
   }
-
   function openCollection(collection: AllCollections) {
     selectedCollection = collection;
   }
 
+  function startTraining(collection: AllCollections) {
+    trainingCollection = collection;
+  }
+
   function backToCollections() {
     selectedCollection = null;
+    trainingCollection = null;
   }
 </script>
 
@@ -145,6 +149,12 @@
   <Cards 
     collectionId={selectedCollection.id} 
     collectionName={selectedCollection.name}
+    onBack={backToCollections}
+  />
+{:else if trainingCollection}
+  <TrainingMode 
+    collectionId={trainingCollection.id} 
+    collectionName={trainingCollection.name}
     onBack={backToCollections}
   />
 {:else}
@@ -242,13 +252,23 @@
             <p class="description">{collection.description}</p>
           {/if}          <div class="card-footer">
             <span class="created-date">Создано: {formatDate(collection.created_at)}</span>
-            <button 
-              on:click={() => openCollection(collection)} 
-              class="view-cards-btn"
-              disabled={loading}
-            >
-              Открыть карточки
-            </button>
+            <div class="footer-actions">
+              <button 
+                on:click={() => startTraining(collection)} 
+                class="train-btn"
+                disabled={loading}
+                title="Начать изучение карточек"
+              >
+                🎓 Учить
+              </button>
+              <button 
+                on:click={() => openCollection(collection)} 
+                class="view-cards-btn"
+                disabled={loading}
+              >
+                Открыть карточки
+              </button>
+            </div>
           </div>
         </div>
       {/each}
@@ -475,8 +495,7 @@
     color: #666;
     margin-bottom: 1rem;
     line-height: 1.4;
-  }
-  .card-footer {
+  }  .card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -484,9 +503,34 @@
     padding-top: 1rem;
   }
 
+  .footer-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
   .created-date {
     color: #999;
     font-size: 12px;
+  }
+
+  .train-btn {
+    background-color: #17a2b8;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+  }
+
+  .train-btn:hover:not(:disabled) {
+    background-color: #138496;
+  }
+
+  .train-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
   }
 
   .view-cards-btn {

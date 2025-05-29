@@ -1,5 +1,4 @@
-<script lang="ts">
-  import { 
+<script lang="ts">  import { 
     getCardsByCollection, 
     createCard, 
     updateCard, 
@@ -10,6 +9,7 @@
   } from '$lib/api';
   import { user } from '$lib/stores';
   import { onMount } from 'svelte';
+  import TrainingMode from './TrainingMode.svelte';
 
   export let collectionId: number;
   export let collectionName: string;
@@ -18,6 +18,7 @@
   let cards: CardsByCollectionID[] = [];
   let loading = false;
   let error = '';
+  let showTraining = false;
   
   // Form state
   let showCreateForm = false;
@@ -116,7 +117,6 @@
     };
     showCreateForm = true;
   }
-
   function resetForm() {
     showCreateForm = false;
     editingCard = null;
@@ -125,17 +125,37 @@
       answer: ''
     };
   }
+
+  function startTraining() {
+    showTraining = true;
+  }
+
+  function backFromTraining() {
+    showTraining = false;
+  }
 </script>
 
-<div class="cards-container">
-  <div class="header">
+{#if showTraining}
+  <TrainingMode 
+    collectionId={collectionId} 
+    collectionName={collectionName}
+    onBack={backFromTraining}
+  />
+{:else}
+
+<div class="cards-container">  <div class="header">
     <div class="header-left">
       <button on:click={onBack} class="back-btn">← Назад</button>
       <h2>Карточки: {collectionName}</h2>
     </div>
-    <button on:click={() => showCreateForm = true} class="create-btn" disabled={loading}>
-      Создать карточку
-    </button>
+    <div class="header-actions">
+      <button on:click={startTraining} class="train-btn" disabled={loading}>
+        🎓 Учить карточки
+      </button>
+      <button on:click={() => showCreateForm = true} class="create-btn" disabled={loading}>
+        Создать карточку
+      </button>
+    </div>
   </div>
 
   {#if error}
@@ -248,24 +268,27 @@
     margin: 0 auto;
     padding: 2rem;
   }
-
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
   }
-
   .header-left {
     display: flex;
     align-items: center;
     gap: 1rem;
   }
 
+  .header-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
   .back-btn {
     background-color: #6c757d;
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -276,10 +299,29 @@
   .back-btn:hover {
     background-color: #5a6268;
   }
-
   .header h2 {
     margin: 0;
     color: #333;
+  }
+
+  .train-btn {
+    background-color: #17a2b8;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+
+  .train-btn:hover:not(:disabled) {
+    background-color: #138496;
+  }
+
+  .train-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
   }
 
   .create-btn {
@@ -505,9 +547,10 @@
     line-height: 1.4;
     color: #555;
   }
-
   .no-answer {
     color: #999;
     font-style: italic;
   }
 </style>
+
+{/if}
