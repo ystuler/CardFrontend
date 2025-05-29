@@ -30,7 +30,6 @@
   onMount(async () => {
     await loadCards();
   });
-
   async function loadCards() {
     if (!$user?.token) return;
     
@@ -39,7 +38,8 @@
     
     try {
       const response = await getCardsByCollection($user.token, collectionId);
-      cards = response.cards || [];
+      // Сортируем карточки по ID для правильного порядка
+      cards = (response.cards || []).sort((a, b) => a.id - b.id);
     } catch (e) {
       error = e instanceof Error ? e.message : 'Ошибка загрузки карточек';
     } finally {
@@ -193,12 +193,11 @@
         <button on:click={() => showCreateForm = true} class="create-btn">
           Создать первую карточку
         </button>
-      </div>
-    {:else}
-      {#each cards as card (card.id)}
+      </div>    {:else}
+      {#each cards as card, index (card.id)}
         <div class="card-item">
           <div class="card-header">
-            <span class="card-label">Карточка #{card.id}</span>
+            <span class="card-label">Карточка #{index + 1}</span>
             <div class="card-actions">
               <button 
                 on:click={() => startEdit(card)} 
