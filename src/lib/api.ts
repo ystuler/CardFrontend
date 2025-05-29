@@ -59,6 +59,43 @@ export interface AllCollectionsResp {
   collections: AllCollections[];
 }
 
+// Cards interfaces
+export interface CreateCardReq {
+  question: string;
+  answer?: string;
+}
+
+export interface CreateCardResp {
+  id: number;
+  question: string;
+  answer?: string;
+  collectionID: number;
+}
+
+export interface UpdateCardReq {
+  id: number;
+  question?: string;
+  answer?: string;
+}
+
+export interface UpdateCardResp {
+  id: number;
+  question: string;
+  answer?: string;
+  collection_id: number;
+}
+
+export interface CardsByCollectionID {
+  id: number;
+  question: string;
+  answer?: string;
+}
+
+export interface GetCardByCollectionIDResp {
+  collectionID: number;
+  cards: CardsByCollectionID[];
+}
+
 // Helper function to get auth headers
 function getAuthHeaders(token: string) {
   return {
@@ -156,4 +193,75 @@ export async function deleteCollection(token: string, collectionId: number): Pro
     const error = await response.text();
     throw new Error(error);
   }
+}
+
+// Cards API functions
+export async function getCardsByCollection(token: string, collectionId: number): Promise<GetCardByCollectionIDResp> {
+  const response = await fetch(`${API_BASE}/collections/${collectionId}/cards`, {
+    method: 'GET',
+    headers: getAuthHeaders(token),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error);
+  }
+
+  return response.json();
+}
+
+export async function createCard(token: string, collectionId: number, cardData: CreateCardReq): Promise<CreateCardResp> {
+  const response = await fetch(`${API_BASE}/collections/${collectionId}/cards`, {
+    method: 'POST',
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(cardData),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error);
+  }
+
+  return response.json();
+}
+
+export async function updateCard(token: string, cardData: UpdateCardReq): Promise<UpdateCardResp> {
+  const response = await fetch(`${API_BASE}/cards/${cardData.id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(cardData),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error);
+  }
+
+  return response.json();
+}
+
+export async function deleteCard(token: string, cardId: number): Promise<void> {
+  const response = await fetch(`${API_BASE}/cards/${cardId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(token),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error);
+  }
+}
+
+export async function getTrainingCards(token: string, collectionId: number): Promise<GetCardByCollectionIDResp> {
+  const response = await fetch(`${API_BASE}/collections/${collectionId}/train`, {
+    method: 'GET',
+    headers: getAuthHeaders(token),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error);
+  }
+
+  return response.json();
 }

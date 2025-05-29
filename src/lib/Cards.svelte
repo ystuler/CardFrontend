@@ -1,93 +1,94 @@
 <script lang="ts">
   import { 
-    getAllCollections, 
-    createCollection, 
-    updateCollection, 
-    deleteCollection,
-    type AllCollections,
-    type CreateCollectionReq,
-    type UpdateCollectionReq 
+    getCardsByCollection, 
+    createCard, 
+    updateCard, 
+    deleteCard,
+    type CardsByCollectionID,
+    type CreateCardReq,
+    type UpdateCardReq 
   } from '$lib/api';
   import { user } from '$lib/stores';
   import { onMount } from 'svelte';
-  import Cards from './Cards.svelte';
 
-  let collections: AllCollections[] = [];
+  export let collectionId: number;
+  export let collectionName: string;
+  export let onBack: () => void;
+
+  let cards: CardsByCollectionID[] = [];
   let loading = false;
   let error = '';
   
-  // View state
-  let selectedCollection: AllCollections | null = null;
-  
   // Form state
   let showCreateForm = false;
-  let editingCollection: AllCollections | null = null;
+  let editingCard: CardsByCollectionID | null = null;
   let formData = {
-    name: '',
-    description: ''
+    question: '',
+    answer: ''
   };
 
   onMount(async () => {
-    await loadCollections();
+    await loadCards();
   });
 
-  async function loadCollections() {
+  async function loadCards() {
     if (!$user?.token) return;
     
     loading = true;
     error = '';
     
     try {
-      const response = await getAllCollections($user.token);
-      collections = response.collections || [];
+      const response = await getCardsByCollection($user.token, collectionId);
+      cards = response.cards || [];
     } catch (e) {
-      error = e instanceof Error ? e.message : 'Ошибка загрузки коллекций';
+      error = e instanceof Error ? e.message : 'Ошибка загрузки карточек';
     } finally {
       loading = false;
     }
   }
 
   async function handleSubmit() {
-    if (!$user?.token || !formData.name.trim()) return;
+    if (!$user?.token || !formData.question.trim()) return;
     
     loading = true;
     error = '';
 
     try {
-      if (editingCollection) {
-        // Update existing collection
-        const updateData: UpdateCollectionReq = {
-          id: editingCollection.id,
-          name: formData.name.trim(),
-          description: formData.description.trim() || undefined
+      if (editingCard) {
+        // Update existing card
+        const updateData: UpdateCardReq = {
+          id: editingCard.id,
+          question: formData.question.trim(),
+          answer: formData.answer.trim() || undefined
         };
-        await updateCollection($user.token, updateData);
+        await updateCard($user.token, updateData);
       } else {
-        // Create new collection
-        const createData: CreateCollectionReq = {
-          name: formData.name.trim(),
-          description: formData.description.trim() || undefined
+        // Create new card
+        const createData: CreateCardReq = {
+          question: formData.question.trim(),
+          answer: formData.answer.trim() || undefined
         };
-        await createCollection($user.token, createData);
+        await createCard($user.token, collectionId, createData);
       }
       
-      await loadCollections();
+      await loadCards();
       resetForm();
     } catch (e) {
-      error = e instanceof Error ? e.message : 'Ошибка сохранения коллекции';
+      error = e instanceof Error ? e.message : 'Ошибка сохранения карточки';
     } finally {
       loading = false;
     }
   }
-  async function handleDelete(collectionId: number) {
-    console.log('Delete clicked for collection:', collectionId);
+
+  async function handleDelete(cardId: number) {
+    console.log('Delete clicked for card:', cardId);
     
     if (!$user?.token) {
       error = 'Нет токена авторизации';
       return;
     }
     
-    if (!confirm('Вы уверены, что хотите удалить эту коллекцию?')) {
+    if (!confirm('Вы уверены, что хотите удалить эту карточку?')) {
       return;
     }
     
@@ -95,65 +96,45 @@
     error = '';
 
     try {
-      console.log('Attempting to delete collection:', collectionId);
-      await deleteCollection($user.token, collectionId);
-      console.log('Collection deleted successfully');
-      await loadCollections();
+      console.log('Attempting to delete card:', cardId);
+      await deleteCard($user.token, cardId);
+      console.log('Card deleted successfully');
+      await loadCards();
     } catch (e) {
       console.error('Delete error:', e);
-      error = e instanceof Error ? e.message : 'Ошибка удаления коллекции';
+      error = e instanceof Error ? e.message : 'Ошибка удаления карточки';
     } finally {
       loading = false;
     }
   }
 
-  function startEdit(collection: AllCollections) {
-    editingCollection = collection;
+  function startEdit(card: CardsByCollectionID) {
+    editingCard = card;
     formData = {
-      name: collection.name,
-      description: collection.description || ''
+      question: card.question,
+      answer: card.answer || ''
     };
     showCreateForm = true;
   }
 
   function resetForm() {
     showCreateForm = false;
-    editingCollection = null;
+    editingCard = null;
     formData = {
-      name: '',
-      description: ''
+      question: '',
+      answer: ''
     };
-  }
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('ru-RU', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
-
-  function openCollection(collection: AllCollections) {
-    selectedCollection = collection;
-  }
-
-  function backToCollections() {
-    selectedCollection = null;
   }
 </script>
 
-{#if selectedCollection}
-  <Cards 
-    collectionId={selectedCollection.id} 
-    collectionName={selectedCollection.name}
-    onBack={backToCollections}
-  />
-{:else}
-
-<div class="collections-container">
+<div class="cards-container">
   <div class="header">
-    <h2>Мои коллекции</h2>
+    <div class="header-left">
+      <button on:click={onBack} class="back-btn">← Назад</button>
+      <h2>Карточки: {collectionName}</h2>
+    </div>
     <button on:click={() => showCreateForm = true} class="create-btn" disabled={loading}>
-      Создать коллекцию
+      Создать карточку
     </button>
   </div>
 
@@ -164,27 +145,27 @@
   {#if showCreateForm}
     <div class="form-overlay">
       <div class="form-modal">
-        <h3>{editingCollection ? 'Редактировать коллекцию' : 'Создать новую коллекцию'}</h3>
+        <h3>{editingCard ? 'Редактировать карточку' : 'Создать новую карточку'}</h3>
         
         <form on:submit|preventDefault={handleSubmit}>
           <div class="form-group">
-            <label for="name">Название *</label>
-            <input 
-              type="text" 
-              id="name"
-              bind:value={formData.name}
-              placeholder="Введите название коллекции"
+            <label for="question">Вопрос *</label>
+            <textarea 
+              id="question"
+              bind:value={formData.question}
+              placeholder="Введите вопрос"
               required
               disabled={loading}
-            />
+              rows="3"
+            ></textarea>
           </div>
           
           <div class="form-group">
-            <label for="description">Описание</label>
+            <label for="answer">Ответ</label>
             <textarea 
-              id="description"
-              bind:value={formData.description}
-              placeholder="Введите описание коллекции (необязательно)"
+              id="answer"
+              bind:value={formData.answer}
+              placeholder="Введите ответ (необязательно)"
               rows="3"
               disabled={loading}
             ></textarea>
@@ -194,8 +175,8 @@
             <button type="button" on:click={resetForm} disabled={loading}>
               Отмена
             </button>
-            <button type="submit" disabled={loading || !formData.name.trim()}>
-              {loading ? 'Сохранение...' : (editingCollection ? 'Обновить' : 'Создать')}
+            <button type="submit" disabled={loading || !formData.question.trim()}>
+              {loading ? 'Сохранение...' : (editingCard ? 'Обновить' : 'Создать')}
             </button>
           </div>
         </form>
@@ -203,24 +184,24 @@
     </div>
   {/if}
 
-  <div class="collections-grid">
-    {#if loading && collections.length === 0}
-      <div class="loading">Загрузка коллекций...</div>
-    {:else if collections.length === 0}
+  <div class="cards-grid">
+    {#if loading && cards.length === 0}
+      <div class="loading">Загрузка карточек...</div>
+    {:else if cards.length === 0}
       <div class="empty-state">
-        <p>У вас пока нет коллекций</p>
+        <p>В этой коллекции пока нет карточек</p>
         <button on:click={() => showCreateForm = true} class="create-btn">
-          Создать первую коллекцию
+          Создать первую карточку
         </button>
       </div>
     {:else}
-      {#each collections as collection (collection.id)}
-        <div class="collection-card">
+      {#each cards as card (card.id)}
+        <div class="card-item">
           <div class="card-header">
-            <h3>{collection.name}</h3>
+            <span class="card-label">Карточка #{card.id}</span>
             <div class="card-actions">
               <button 
-                on:click={() => startEdit(collection)} 
+                on:click={() => startEdit(card)} 
                 class="edit-btn" 
                 title="Редактировать"
                 disabled={loading}
@@ -228,7 +209,7 @@
                 ✏️
               </button>
               <button 
-                on:click|stopPropagation={() => handleDelete(collection.id)} 
+                on:click|stopPropagation={() => handleDelete(card.id)} 
                 class="delete-btn" 
                 title="Удалить"
                 disabled={loading}
@@ -238,27 +219,32 @@
             </div>
           </div>
           
-          {#if collection.description}
-            <p class="description">{collection.description}</p>
-          {/if}          <div class="card-footer">
-            <span class="created-date">Создано: {formatDate(collection.created_at)}</span>
-            <button 
-              on:click={() => openCollection(collection)} 
-              class="view-cards-btn"
-              disabled={loading}
-            >
-              Открыть карточки
-            </button>
+          <div class="card-content">
+            <div class="question-section">
+              <h4>Вопрос:</h4>
+              <p>{card.question}</p>
+            </div>
+            
+            {#if card.answer}
+              <div class="answer-section">
+                <h4>Ответ:</h4>
+                <p>{card.answer}</p>
+              </div>
+            {:else}
+              <div class="answer-section">
+                <h4>Ответ:</h4>
+                <p class="no-answer">Ответ не указан</p>
+              </div>
+            {/if}
           </div>
         </div>
       {/each}
-    {/if}  </div>
+    {/if}
+  </div>
 </div>
 
-{/if}
-
 <style>
-  .collections-container {
+  .cards-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
@@ -269,6 +255,27 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .back-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+
+  .back-btn:hover {
+    background-color: #5a6268;
   }
 
   .header h2 {
@@ -324,8 +331,10 @@
     padding: 2rem;
     border-radius: 8px;
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
     margin: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 
   .form-modal h3 {
@@ -345,7 +354,6 @@
     font-weight: 500;
   }
 
-  .form-group input,
   .form-group textarea {
     width: 100%;
     padding: 0.75rem;
@@ -353,9 +361,10 @@
     border-radius: 4px;
     font-size: 16px;
     box-sizing: border-box;
+    font-family: inherit;
+    resize: vertical;
   }
 
-  .form-group input:focus,
   .form-group textarea:focus {
     outline: none;
     border-color: #007bff;
@@ -395,9 +404,9 @@
     cursor: not-allowed;
   }
 
-  .collections-grid {
+  .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 1.5rem;
   }
 
@@ -413,7 +422,7 @@
     font-size: 18px;
   }
 
-  .collection-card {
+  .card-item {
     background: white;
     border-radius: 8px;
     padding: 1.5rem;
@@ -421,7 +430,7 @@
     transition: transform 0.2s, box-shadow 0.2s;
   }
 
-  .collection-card:hover {
+  .card-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
@@ -429,20 +438,24 @@
   .card-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
   }
 
-  .card-header h3 {
-    margin: 0;
-    color: #333;
-    flex: 1;
+  .card-label {
+    color: #666;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
   }
 
   .card-actions {
     display: flex;
     gap: 0.5rem;
   }
+
   .edit-btn, .delete-btn {
     background: none;
     border: none;
@@ -471,41 +484,31 @@
     cursor: not-allowed;
   }
 
-  .description {
-    color: #666;
-    margin-bottom: 1rem;
-    line-height: 1.4;
-  }
-  .card-footer {
+  .card-content {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid #eee;
-    padding-top: 1rem;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .created-date {
+  .question-section, .answer-section {
+    flex: 1;
+  }
+
+  .question-section h4, .answer-section h4 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .question-section p, .answer-section p {
+    margin: 0;
+    line-height: 1.4;
+    color: #555;
+  }
+
+  .no-answer {
     color: #999;
-    font-size: 12px;
-  }
-
-  .view-cards-btn {
-    background-color: #007bff;
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.2s;
-  }
-
-  .view-cards-btn:hover:not(:disabled) {
-    background-color: #0056b3;
-  }
-
-  .view-cards-btn:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
+    font-style: italic;
   }
 </style>
