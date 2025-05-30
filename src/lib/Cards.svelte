@@ -146,7 +146,7 @@
 <div class="cards-container">  <div class="header">
     <div class="header-left">
       <button on:click={onBack} class="back-btn">← Назад</button>
-      <h2>Карточки: {collectionName}</h2>
+      <h2 title={collectionName}>Карточки: {collectionName}</h2>
     </div>
     <div class="header-actions">
       <button on:click={startTraining} class="train-btn" disabled={loading}>
@@ -237,17 +237,16 @@
               </button>
             </div>
           </div>
-          
-          <div class="card-content">
+            <div class="card-content">
             <div class="question-section">
               <h4>Вопрос:</h4>
-              <p>{card.question}</p>
+              <p title={card.question}>{card.question}</p>
             </div>
             
             {#if card.answer}
               <div class="answer-section">
                 <h4>Ответ:</h4>
-                <p>{card.answer}</p>
+                <p title={card.answer}>{card.answer}</p>
               </div>
             {:else}
               <div class="answer-section">
@@ -298,10 +297,17 @@
 
   .back-btn:hover {
     background-color: #5a6268;
-  }
-  .header h2 {
+  }  .header h2 {
     margin: 0;
     color: #333;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    max-height: 2.6em;
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .train-btn {
@@ -444,10 +450,9 @@
     opacity: 0.6;
     cursor: not-allowed;
   }
-
   .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
   }
 
@@ -541,15 +546,57 @@
     font-size: 14px;
     font-weight: 600;
   }
-
   .question-section p, .answer-section p {
     margin: 0;
     line-height: 1.4;
     color: #555;
-  }
-  .no-answer {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    max-height: 4.2em;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }  .no-answer {
     color: #999;
     font-style: italic;
+  }
+
+  /* Адаптивные стили для мобильных устройств */
+  @media (max-width: 768px) {
+    .cards-container {
+      padding: 1rem;
+    }
+
+    .header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .header-left {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    .header-actions {
+      justify-content: space-between;
+    }
+
+    .cards-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .card-item {
+      padding: 1rem;
+    }
+
+    .form-modal {
+      margin: 0.5rem;
+      padding: 1rem;
+    }
   }
 </style>
 
