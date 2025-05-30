@@ -224,10 +224,9 @@
         </button>
       </div>
     {:else}
-      {#each collections as collection (collection.id)}
-        <div class="collection-card">
+      {#each collections as collection (collection.id)}        <div class="collection-card">
           <div class="card-header">
-            <h3>{collection.name}</h3>
+            <h3 title={collection.name}>{collection.name}</h3>
             <div class="card-actions">
               <button 
                 on:click={() => startEdit(collection)} 
@@ -247,10 +246,9 @@
               </button>
             </div>
           </div>
-          
-          {#if collection.description}
-            <p class="description">{collection.description}</p>
-          {/if}          <div class="card-footer">
+            {#if collection.description}
+            <p class="description" title={collection.description}>{collection.description}</p>
+          {/if}<div class="card-footer">
             <span class="created-date">Создано: {formatDate(collection.created_at)}</span>
             <div class="footer-actions">
               <button 
@@ -414,11 +412,30 @@
     opacity: 0.6;
     cursor: not-allowed;
   }
-
   .collections-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .collections-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .collection-card {
+      margin: 0;
+    }
+    
+    .card-header {
+      align-items: flex-start;
+    }
+    
+    .card-header h3 {
+      font-size: 16px;
+      margin-right: 0.5rem;
+    }
   }
 
   .loading, .empty-state {
@@ -452,11 +469,20 @@
     align-items: flex-start;
     margin-bottom: 1rem;
   }
-
   .card-header h3 {
     margin: 0;
     color: #333;
     flex: 1;
+    margin-right: 1rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.3;
+    max-height: 2.6em; /* Примерно 2 строки */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
   .card-actions {
@@ -490,12 +516,18 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
-
   .description {
     color: #666;
     margin-bottom: 1rem;
     line-height: 1.4;
-  }  .card-footer {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-height: 4.2em; /* Примерно 3 строки */
+  }.card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
