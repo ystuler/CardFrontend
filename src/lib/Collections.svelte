@@ -479,9 +479,9 @@
     hyphens: auto;
     line-height: 1.3;
     max-height: 2.6em; /* Примерно 2 строки */
-    overflow: hidden;
-    display: -webkit-box;
+    overflow: hidden;    display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
   }
 
@@ -521,9 +521,9 @@
     margin-bottom: 1rem;
     line-height: 1.4;
     word-wrap: break-word;
-    overflow-wrap: break-word;
-    display: -webkit-box;
+    overflow-wrap: break-word;    display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     max-height: 4.2em; /* Примерно 3 строки */

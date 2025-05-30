@@ -71,11 +71,10 @@
   $: progress = trainingCards.length > 0 ? ((currentCardIndex + 1) / trainingCards.length) * 100 : 0;
 </script>
 
-<div class="training-container">
-  <div class="header">
+<div class="training-container">  <div class="header">
     <div class="header-left">
       <button on:click={onBack} class="back-btn">← Назад</button>
-      <h2>Изучение: {collectionName}</h2>
+      <h2 title={collectionName}>Изучение: {collectionName}</h2>
     </div>
     
     {#if !loading && !error && trainingCards.length > 0 && !trainingComplete}
@@ -124,16 +123,15 @@
       <div class="card-counter">
         Карточка {currentCardIndex + 1} из {trainingCards.length}
       </div>
-      
-      <div class="question-section">
+        <div class="question-section">
         <h3>Вопрос:</h3>
-        <div class="question-text">{currentCard.question}</div>
+        <div class="question-text" title={currentCard.question}>{currentCard.question}</div>
       </div>
       
       {#if showAnswer}
         <div class="answer-section">
           <h3>Ответ:</h3>
-          <div class="answer-text">
+          <div class="answer-text" title={currentCard.answer || 'Ответ не указан'}>
             {#if currentCard.answer}
               {currentCard.answer}
             {:else}
@@ -192,11 +190,18 @@
 
   .back-btn:hover {
     background-color: #5a6268;
-  }
-
-  .header h2 {
+  }  .header h2 {
     margin: 0;
     color: #333;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    max-height: 2.6em;
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .progress-info {
@@ -253,7 +258,6 @@
     font-size: 18px;
     font-weight: 600;
   }
-
   .question-text, .answer-text {
     font-size: 16px;
     line-height: 1.6;
@@ -263,12 +267,38 @@
     border-radius: 8px;
     border-left: 4px solid #007bff;
     min-height: 60px;
-    display: flex;
-    align-items: center;
+    max-height: 200px;
+    overflow-y: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent;
   }
-
   .answer-text {
     border-left-color: #28a745;
+  }
+
+  /* Стили для скроллбара в WebKit браузерах */
+  .question-text::-webkit-scrollbar,
+  .answer-text::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .question-text::-webkit-scrollbar-track,
+  .answer-text::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  .question-text::-webkit-scrollbar-thumb,
+  .answer-text::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+  }
+
+  .question-text::-webkit-scrollbar-thumb:hover,
+  .answer-text::-webkit-scrollbar-thumb:hover {
+    background: #999;
   }
 
   .no-answer {
@@ -386,7 +416,6 @@
   .restart-btn:hover {
     background-color: #138496;
   }
-
   @media (max-width: 768px) {
     .training-container {
       padding: 1rem;
@@ -394,6 +423,12 @@
     
     .training-card {
       padding: 1.5rem;
+    }
+
+    .question-text, .answer-text {
+      padding: 1rem;
+      font-size: 14px;
+      max-height: 150px;
     }
     
     .header {
@@ -409,6 +444,8 @@
     
     .show-answer-btn, .next-btn {
       min-width: 180px;
+      padding: 0.75rem 1.5rem;
+      font-size: 14px;
     }
   }
 </style>

@@ -302,8 +302,8 @@
     color: #333;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;    -webkit-line-clamp: 2;
+    line-clamp: 2;
     max-height: 2.6em;
     line-height: 1.3;
     word-wrap: break-word;
@@ -552,8 +552,8 @@
     color: #555;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;    -webkit-line-clamp: 3;
+    line-clamp: 3;
     max-height: 4.2em;
     word-wrap: break-word;
     overflow-wrap: break-word;
