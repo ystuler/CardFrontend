@@ -57,11 +57,10 @@
       if (editingCollection) {
         // Update existing collection
         const updateData: UpdateCollectionReq = {
-          id: editingCollection.id,
           name: formData.name.trim(),
           description: formData.description.trim() || undefined
         };
-        await updateCollection($user.token, updateData);
+        await updateCollection($user.token, editingCollection.id, updateData);
       } else {
         // Create new collection
         const createData: CreateCollectionReq = {

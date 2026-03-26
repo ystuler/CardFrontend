@@ -22,6 +22,14 @@ export interface CreateUserResp {
   username: string;
 }
 
+export interface LogOutResp {
+  message: string;
+}
+
+export interface ErrorResponse {
+  error: string;
+}
+
 // Collections interfaces
 export interface CreateCollectionReq {
   name: string;
@@ -36,8 +44,7 @@ export interface CreateCollectionResp {
 }
 
 export interface UpdateCollectionReq {
-  id: number;
-  name?: string;
+  name: string;
   description?: string;
 }
 
@@ -73,7 +80,6 @@ export interface CreateCardResp {
 }
 
 export interface UpdateCardReq {
-  id: number;
   question?: string;
   answer?: string;
 }
@@ -104,6 +110,27 @@ function getAuthHeaders(token: string) {
   };
 }
 
+async function getErrorMessage(response: Response): Promise<string> {
+  const contentType = response.headers.get('content-type') || '';
+
+  if (contentType.includes('application/json')) {
+    try {
+      const data = (await response.json()) as Partial<ErrorResponse & LogOutResp>;
+      if (typeof data.error === 'string' && data.error.trim()) {
+        return data.error;
+      }
+      if (typeof data.message === 'string' && data.message.trim()) {
+        return data.message;
+      }
+    } catch {
+      // Fallback to status text when body parsing fails.
+    }
+  }
+
+  const text = await response.text();
+  return text || response.statusText || 'Request failed';
+}
+
 export async function login(credentials: SignInReq): Promise<SignInResp> {
   const response = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
@@ -114,8 +141,7 @@ export async function login(credentials: SignInReq): Promise<SignInResp> {
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 
   return response.json();
@@ -131,8 +157,7 @@ export async function signup(userData: CreateUserReq): Promise<CreateUserResp> {
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 
   return response.json();
@@ -140,115 +165,107 @@ export async function signup(userData: CreateUserReq): Promise<CreateUserResp> {
 
 // Collections API functions
 export async function getAllCollections(token: string): Promise<AllCollectionsResp> {
-  const response = await fetch(`${API_BASE}/collections`, {
+  const response = await fetch(`${API_BASE}/collections/`, {
     method: 'GET',
     headers: getAuthHeaders(token),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 
   return response.json();
 }
 
 export async function createCollection(token: string, collectionData: CreateCollectionReq): Promise<CreateCollectionResp> {
-  const response = await fetch(`${API_BASE}/collections`, {
+  const response = await fetch(`${API_BASE}/collections/`, {
     method: 'POST',
     headers: getAuthHeaders(token),
     body: JSON.stringify(collectionData),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 
   return response.json();
 }
 
-export async function updateCollection(token: string, collectionData: UpdateCollectionReq): Promise<UpdateCollectionResp> {
-  const response = await fetch(`${API_BASE}/collections/${collectionData.id}`, {
+export async function updateCollection(token: string, collectionId: number, collectionData: UpdateCollectionReq): Promise<UpdateCollectionResp> {
+  const response = await fetch(`${API_BASE}/collections/${collectionId}/`, {
     method: 'PUT',
     headers: getAuthHeaders(token),
     body: JSON.stringify(collectionData),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 
   return response.json();
 }
 
 export async function deleteCollection(token: string, collectionId: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/collections/${collectionId}`, {
+  const response = await fetch(`${API_BASE}/collections/${collectionId}/`, {
     method: 'DELETE',
     headers: getAuthHeaders(token),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 }
 
 // Cards API functions
 export async function getCardsByCollection(token: string, collectionId: number): Promise<GetCardByCollectionIDResp> {
-  const response = await fetch(`${API_BASE}/collections/${collectionId}/cards`, {
+  const response = await fetch(`${API_BASE}/collections/${collectionId}/cards/`, {
     method: 'GET',
     headers: getAuthHeaders(token),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 
   return response.json();
 }
 
 export async function createCard(token: string, collectionId: number, cardData: CreateCardReq): Promise<CreateCardResp> {
-  const response = await fetch(`${API_BASE}/collections/${collectionId}/cards`, {
+  const response = await fetch(`${API_BASE}/collections/${collectionId}/cards/`, {
     method: 'POST',
     headers: getAuthHeaders(token),
     body: JSON.stringify(cardData),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 
   return response.json();
 }
 
-export async function updateCard(token: string, cardData: UpdateCardReq): Promise<UpdateCardResp> {
-  const response = await fetch(`${API_BASE}/cards/${cardData.id}`, {
+export async function updateCard(token: string, cardId: number, cardData: UpdateCardReq): Promise<UpdateCardResp> {
+  const response = await fetch(`${API_BASE}/cards/${cardId}/`, {
     method: 'PUT',
     headers: getAuthHeaders(token),
     body: JSON.stringify(cardData),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 
   return response.json();
 }
 
 export async function deleteCard(token: string, cardId: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/cards/${cardId}`, {
+  const response = await fetch(`${API_BASE}/cards/${cardId}/`, {
     method: 'DELETE',
     headers: getAuthHeaders(token),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
   }
 }
 
@@ -259,8 +276,20 @@ export async function getTrainingCards(token: string, collectionId: number): Pro
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error);
+    throw new Error(await getErrorMessage(response));
+  }
+
+  return response.json();
+}
+
+export async function logout(token: string): Promise<LogOutResp> {
+  const response = await fetch(`${API_BASE}/auth/logout`, {
+    method: 'POST',
+    headers: getAuthHeaders(token),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
   }
 
   return response.json();

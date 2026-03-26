@@ -1,7 +1,18 @@
 <script lang="ts">
+  import { logout as logoutRequest } from '$lib/api';
   import { user, isAuthenticated } from '$lib/stores';
   
-  function logout() {
+  async function logout() {
+    const token = $user?.token;
+
+    if (token) {
+      try {
+        await logoutRequest(token);
+      } catch {
+        // Local session is cleared even if backend logout fails.
+      }
+    }
+
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     user.set(null);

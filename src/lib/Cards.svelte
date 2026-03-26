@@ -58,11 +58,10 @@
       if (editingCard) {
         // Update existing card
         const updateData: UpdateCardReq = {
-          id: editingCard.id,
           question: formData.question.trim(),
           answer: formData.answer.trim() || undefined
         };
-        await updateCard($user.token, updateData);
+        await updateCard($user.token, editingCard.id, updateData);
       } else {
         // Create new card
         const createData: CreateCardReq = {

@@ -1,38 +1,61 @@
-# sv
+# CardFrontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Фронтенд на SvelteKit для работы с Card Backend API.
 
-## Creating a project
+## Требования
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Node.js 20+ (рекомендуется 22)
+- pnpm
+- Для Docker-режима: Docker Desktop (или Docker Engine + docker compose)
+- Запущенный backend на http://localhost:8000
 
-```bash
-# create a new project in the current directory
-npx sv create
+## Запуск в Docker
 
-# create a new project in my-app
-npx sv create my-app
-```
+В проекте есть два сервиса:
 
-## Developing
+- frontend-dev: режим разработки, порт 5173
+- frontend-prod: preview-сборка, порт 3000
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Команды:
 
-```bash
-npm run dev
+1. Сборка и запуск
+	docker compose up --build
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+2. Открыть приложение
+	Dev: http://localhost:5173
+	Prod preview: http://localhost:3000
 
-## Building
+3. Остановить
+	Ctrl+C в терминале
 
-To create a production version of your app:
+4. Удалить контейнеры/сеть
+	docker compose down
 
-```bash
-npm run build
-```
+## Запуск bare metal (локально без Docker)
 
-You can preview the production build with `npm run preview`.
+1. Установить зависимости
+	pnpm install
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+2. Проверка типов и Svelte-диагностики
+	pnpm check
+
+3. Запуск dev-сервера
+	pnpm dev -- --open
+
+4. Открыть приложение
+	http://localhost:5173
+
+## Локальный preview (условно production)
+
+1. Сборка
+	pnpm build
+
+2. Запуск preview
+	pnpm preview -- --host 0.0.0.0 --port 3000
+
+3. Открыть
+	http://localhost:3000
+
+## Примечание по API
+
+Фронтенд ходит в backend по адресу http://localhost:8000. Если backend запущен на другом хосте/порту, обнови значение API_BASE в [src/lib/api.ts](src/lib/api.ts).

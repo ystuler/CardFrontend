@@ -1,0 +1,9 @@
+node_modules
+build
+.svelte-kit
+.vscode
+.git
+.gitignore
+pnpm-debug.log*
+npm-debug.log*
+yarn-error.log*
